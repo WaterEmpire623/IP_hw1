@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Loading Inputs
-img = cv2.imread('input.png')
+img = cv2.imread('input1.png')
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 img_rgb = img_rgb/255
 
@@ -11,7 +11,7 @@ red = img_rgb[:,:,0]
 green = img_rgb[:,:,1]
 blue = img_rgb[:,:,2]
 
-# Converting RGB to HSL
+# Converting RGB to HSV
 Max_rgb = np.max(img_rgb, axis=2)
 min_rgb = np.min(img_rgb, axis=2)
 rows, cols = Max_rgb.shape
@@ -46,7 +46,7 @@ cdf = np.ma.filled(cdf_m, 0).astype(np.uint8) # unmasks all zero
 v_equalized = cdf[v_8bit] # LUP mapping
 v_final = v_equalized.astype(float) / 255.0
 
-# Converting HSL to RGB
+# Converting HSV to RGB
 h_i = np.empty((rows, cols))
 f = np.empty((rows, cols))
 p = np.empty((rows, cols))
@@ -57,33 +57,33 @@ green_out = np.empty((rows, cols))
 blue_out = np.empty((rows, cols))
 for i in range(rows):
     for j in range(cols):
-        h_i[i,j] = h[i,j] / 60
+        h_i[i,j] = np.floor(h[i,j] / 60)
         f[i,j] = h[i,j] / 60 - h_i[i,j]
-        p[i,j] = v[i,j] * (1 - s[i,j])
-        q[i,j] = v[i,j] * (1 - f[i,j] * s[i,j])
-        t[i,j] = v[i,j] * (1 - (1 - f[i,j]) * s[i,j])
+        p[i,j] = v_final[i,j] * (1 - s[i,j])
+        q[i,j] = v_final[i,j] * (1 - f[i,j] * s[i,j])
+        t[i,j] = v_final[i,j] * (1 - (1 - f[i,j]) * s[i,j])
         if(h_i[i,j] == 0):
-            red_out[i,j] = v[i,j]
+            red_out[i,j] = v_final[i,j]
             green_out[i,j] = t[i,j]
             blue_out[i,j] = p[i,j]
         elif(h_i[i,j] == 1):
             red_out[i,j] = q[i,j]
-            green_out[i,j] = v[i,j]
+            green_out[i,j] = v_final[i,j]
             blue_out[i,j] = p[i,j]
         elif(h_i[i,j] == 2):
             red_out[i,j] = p[i,j]
-            green_out[i,j] = v[i,j]
+            green_out[i,j] = v_final[i,j]
             blue_out[i,j] = t[i,j]
         elif(h_i[i,j] == 3):
             red_out[i,j] = p[i,j]
             green_out[i,j] = q[i,j]
-            blue_out[i,j] = v[i,j]
+            blue_out[i,j] = v_final[i,j]
         elif(h_i[i,j] == 4):
             red_out[i,j] = t[i,j]
             green_out[i,j] = p[i,j]
-            blue_out[i,j] = v[i,j]
+            blue_out[i,j] = v_final[i,j]
         elif(h_i[i,j] == 5):
-            red_out[i,j] = v[i,j]
+            red_out[i,j] = v_final[i,j]
             green_out[i,j] = p[i,j]
             blue_out[i,j] = q[i,j]
 
