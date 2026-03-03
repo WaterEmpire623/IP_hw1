@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Loading Inputs
-img = cv2.imread('input1.png')
+img = cv2.imread('example.png')
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 img_rgb = img_rgb/255
 
@@ -93,3 +94,32 @@ green_bgr = (green_out * 255).astype(np.uint8)
 blue_bgr = (blue_out * 255).astype(np.uint8)
 output_img = cv2.merge([blue_bgr, green_bgr, red_bgr])
 cv2.imwrite('output.png', output_img)
+
+# Plotting 2D Histogram of Hue, Saturation
+h_flatten = h.flatten()
+s_flatten = s.flatten() * 255
+plt.figure(figsize=(8, 6))
+plt.hist2d(h_flatten, s_flatten, bins=[180, 256], range=[[0, 180], [0, 256]], cmap='inferno')
+plt.title('2D Histogram of H and S Channels')
+plt.xlabel('Hue')
+plt.ylabel('Saturation')
+plt.colorbar(label='Pixel Count')
+plt.savefig('2d_histogram.png')
+plt.show()
+
+# Plotting PDF of Input and Output
+fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+axs[0, 0].imshow(img)
+axs[0, 0].set_title('Original Image')
+axs[1, 0].imshow(output_img)
+axs[1, 0].set_title('Equalized Image')
+hist_input, _ = np.histogram(img.flatten(), 256, [0, 256])
+pdf_input = hist_input / hist_input.sum()
+hist_output, _ = np.histogram(output_img.flatten(), 256, [0, 256])
+pdf_output = hist_output / hist_output.sum()
+axs[0, 1].plot(pdf_input)
+axs[0, 1].set_title('Original PDF')
+axs[1, 1].plot(pdf_output)
+axs[1, 1].set_title('Equalized PDF')
+plt.savefig('result.png')
+plt.show()
