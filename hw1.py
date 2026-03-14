@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Loading Inputs
-img = cv2.imread('example.png')
+img = cv2.imread('input.png')
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 img_rgb = img_rgb/255
 
@@ -38,14 +38,24 @@ for i in range(rows):
             s[i,j] = (Max_rgb[i,j] - min_rgb[i,j]) / Max_rgb[i,j]
 
 # Histogram Equalization
+
 v_8bit = (v*255).astype(np.uint8)
 hist, _ = np.histogram(v_8bit.flatten(), bins=256, range=(0, 256))
 cdf = hist.cumsum() # calculates cumulative sum
-cdf_m = np.ma.masked_equal(cdf, 0) # masks all zero
-cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min()) # scaling formula
-cdf = np.ma.filled(cdf_m, 0).astype(np.uint8) # unmasks all zero
+cdf = (cdf - cdf.min()) * 255 / (cdf.max() - cdf.min()) # scaling formula
 v_equalized = cdf[v_8bit] # LUP mapping
 v_final = v_equalized.astype(float) / 255.0
+
+# User-Specified Transformation
+v_8bit_user = (v*255).astype(np.uint8)
+hist_user, _ = np.histogram(v_8bit.flatten(), bins=256, range=(0, 256))
+cdf_user = hist.cumsum() # calculates cumulative sum
+cdf_user_normalized = cdf_user / cdf_user.max()
+gamma = 0.4  # Adjust this: higher values push more pixels to the bright end
+v_gamma = np.power(cdf_user_normalized, gamma)
+cdf_user_final = (v_gamma * 255).astype(np.uint8)
+v_user_equalized = cdf_user_final[v_8bit]
+v_user_final = v_user_equalized.astype(float) / 255.0
 
 # Converting HSV to RGB
 h_i = np.empty((rows, cols))
@@ -93,7 +103,7 @@ red_bgr = (red_out * 255).astype(np.uint8)
 green_bgr = (green_out * 255).astype(np.uint8)
 blue_bgr = (blue_out * 255).astype(np.uint8)
 output_img = cv2.merge([blue_bgr, green_bgr, red_bgr])
-cv2.imwrite('output.png', output_img)
+cv2.imwrite('output_equalized.png', output_img)
 
 # Plotting 2D Histogram of Hue, Saturation
 h_flatten = h.flatten()
